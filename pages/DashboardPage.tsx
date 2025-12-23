@@ -3,14 +3,13 @@ import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useBusinessData } from '../contexts/BusinessDataContext';
-import { HelpOption, SizeCategory } from '../types';
+import { HelpOption, SizeCategory, HelpOptionType } from '../types';
+import { GoogleGenAI, Type } from "@google/genai";
 
 import DashboardNav from '../components/DashboardNav';
 import MobilePreview from '../components/MobilePreview';
 import AnalyticsCharts from '../components/AnalyticsCharts';
 import { ICONS } from '../constants';
-
-// Sub-components defined outside the main component to prevent re-rendering issues
 
 const ConfigPanel: React.FC = () => {
     const { config, updateConfig } = useBusinessData();
@@ -18,42 +17,109 @@ const ConfigPanel: React.FC = () => {
     const [buttonColor, setButtonColor] = useState(config.buttonColor);
     const [panelColor, setPanelColor] = useState(config.panelColor);
     const [isSaving, setIsSaving] = useState(false);
+    const [isAiGenerating, setIsAiGenerating] = useState(false);
     
     const url = `${window.location.origin}${window.location.pathname}#/help-button/${user?.businessSlug}`;
 
     const handleSave = async () => {
         setIsSaving(true);
         await updateConfig({ buttonColor, panelColor });
-        setTimeout(() => setIsSaving(false), 1000);
+        setTimeout(() => setIsSaving(false), 800);
+    };
+
+    const handleAiMagic = async () => {
+        setIsAiGenerating(true);
+        try {
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: `Sugiere un esquema de colores elegante (en hexadecimal) para una marca llamada "${user?.businessName}". 
+                Responde en formato JSON con las llaves "buttonColor" y "panelColor". El panel debe ser claro o blanco suave.`,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            buttonColor: { type: Type.STRING },
+                            panelColor: { type: Type.STRING }
+                        },
+                        required: ["buttonColor", "panelColor"]
+                    }
+                }
+            });
+            
+            const result = JSON.parse(response.text || '{}');
+            if (result.buttonColor) setButtonColor(result.buttonColor);
+            if (result.panelColor) setPanelColor(result.panelColor);
+        } catch (error) {
+            console.error("AI Error:", error);
+        } finally {
+            setIsAiGenerating(false);
+        }
     };
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow">
-                <h2 className="text-xl font-bold text-gray-800">Button Configuration</h2>
-                <p className="text-gray-500 mt-1">Customize the appearance of your help button.</p>
-                <div className="mt-6 space-y-6">
+        <div className="flex flex-col lg:flex-row gap-8">
+            <div className="flex-1 bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div className="flex justify-between items-center mb-10">
                     <div>
-                        <label htmlFor="button-url" className="block text-sm font-medium text-gray-700">Your Help Button URL</label>
-                        <input type="text" id="button-url" readOnly value={url} className="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm sm:text-sm" />
+                        <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">Estilo & Identidad</h2>
+                        <p className="text-slate-500 mt-2 font-medium">Define cómo se ve JapiJelp en tu tienda.</p>
                     </div>
-                    <div>
-                        <label htmlFor="button-color" className="block text-sm font-medium text-gray-700">Button Color</label>
-                        <input type="color" id="button-color" value={buttonColor} onChange={(e) => setButtonColor(e.target.value)} className="mt-1 h-10 w-full rounded-md border border-gray-300 cursor-pointer"/>
+                    <button 
+                        onClick={handleAiMagic}
+                        disabled={isAiGenerating}
+                        className="flex items-center px-5 py-2.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-2xl shadow-xl shadow-indigo-100 hover:scale-105 transition-transform disabled:opacity-50 font-bold text-sm"
+                    >
+                        <span className="mr-2">✨</span>
+                        {isAiGenerating ? 'Magia...' : 'IA Magic Style'}
+                    </button>
+                </div>
+
+                <div className="space-y-8">
+                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200/50">
+                        <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Tu URL Pública</label>
+                        <div className="flex gap-2">
+                            <input type="text" readOnly value={url} className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl font-mono text-sm text-slate-600 focus:outline-none" />
+                            <button onClick={() => navigator.clipboard.writeText(url)} className="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                            </button>
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="panel-color" className="block text-sm font-medium text-gray-700">Panel Background Color</label>
-                        <input type="color" id="panel-color" value={panelColor} onChange={(e) => setPanelColor(e.target.value)} className="mt-1 h-10 w-full rounded-md border border-gray-300 cursor-pointer"/>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                            <label className="block text-sm font-bold text-slate-700">Botón Principal</label>
+                            <div className="flex items-center gap-4">
+                                <input type="color" value={buttonColor} onChange={(e) => setButtonColor(e.target.value)} className="h-14 w-14 rounded-2xl border-none cursor-pointer p-0 overflow-hidden shadow-inner"/>
+                                <input type="text" value={buttonColor} onChange={(e) => setButtonColor(e.target.value)} className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold uppercase" />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="block text-sm font-bold text-slate-700">Fondo del Panel</label>
+                            <div className="flex items-center gap-4">
+                                <input type="color" value={panelColor} onChange={(e) => setPanelColor(e.target.value)} className="h-14 w-14 rounded-2xl border-none cursor-pointer p-0 overflow-hidden shadow-inner"/>
+                                <input type="text" value={panelColor} onChange={(e) => setPanelColor(e.target.value)} className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm font-bold uppercase" />
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="mt-8 text-right">
-                    <button onClick={handleSave} disabled={isSaving} className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:bg-primary-300">
-                        {isSaving ? 'Saving...' : 'Save Changes'}
+
+                <div className="mt-12 flex justify-end">
+                    <button 
+                        onClick={handleSave} 
+                        disabled={isSaving} 
+                        className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:bg-slate-300"
+                    >
+                        {isSaving ? 'Guardando...' : 'Aplicar Cambios'}
                     </button>
                 </div>
             </div>
-            <div className="hidden lg:flex justify-center items-center">
-                <MobilePreview config={{...config, buttonColor, panelColor}} />
+            
+            <div className="hidden xl:flex justify-center items-start sticky top-10">
+                <div className="p-4 bg-white rounded-[3rem] shadow-2xl shadow-slate-200 border border-slate-100 scale-90">
+                    <MobilePreview config={{...config, buttonColor, panelColor}} />
+                </div>
             </div>
         </div>
     );
@@ -71,148 +137,44 @@ const OptionsPanel: React.FC = () => {
     const handleSave = async () => {
         setIsSaving(true);
         await updateConfig({ helpOptions: options });
-        setTimeout(() => setIsSaving(false), 1000);
+        setTimeout(() => setIsSaving(false), 800);
     };
 
     return (
-         <div className="bg-white p-6 rounded-lg shadow max-w-2xl mx-auto">
-            <h2 className="text-xl font-bold text-gray-800">Help Options</h2>
-            <p className="text-gray-500 mt-1">Configure the options available when a customer clicks the help button.</p>
-            <div className="mt-6 space-y-4">
+         <div className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-slate-100 max-w-4xl">
+            <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-2">Funciones de Ayuda</h2>
+            <p className="text-slate-500 mb-10 font-medium">Activa o desactiva las capacidades de tu botón inteligente.</p>
+            
+            <div className="grid gap-4">
                 {options.map(option => (
-                    <div key={option.id} className="flex items-center justify-between p-3 border rounded-md">
-                        <span className="text-gray-800">{option.label}</span>
-                        <label className="relative inline-flex items-center cursor-pointer">
+                    <div key={option.id} className="group flex items-center justify-between p-6 bg-slate-50 border border-transparent hover:border-primary-200 rounded-3xl transition-all cursor-pointer" onClick={() => toggleOption(option.id)}>
+                        <div className="flex items-center">
+                            <div className={`p-4 rounded-2xl mr-5 transition-colors ${option.enabled ? 'bg-primary-100 text-primary-600' : 'bg-slate-200 text-slate-400'}`}>
+                                {option.type === HelpOptionType.CALL ? ICONS.phone : ICONS.exchange}
+                            </div>
+                            <div>
+                                <span className={`text-lg font-bold block ${option.enabled ? 'text-slate-800' : 'text-slate-400'}`}>{option.label}</span>
+                                <span className="text-sm text-slate-400 font-medium">
+                                    {option.type === HelpOptionType.CALL ? 'Atención telefónica directa' : 'Gestión de devoluciones automatizada'}
+                                </span>
+                            </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer" onClick={(e) => e.stopPropagation()}>
                           <input type="checkbox" checked={option.enabled} onChange={() => toggleOption(option.id)} className="sr-only peer" />
-                          <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-primary-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                          <div className="w-14 h-8 bg-slate-200 rounded-full peer peer-checked:bg-primary-600 after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-6"></div>
                         </label>
                     </div>
                 ))}
             </div>
-             <div className="mt-8 text-right">
-                <button onClick={handleSave} disabled={isSaving} className="px-6 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 disabled:bg-primary-300">
-                    {isSaving ? 'Saving...' : 'Save Options'}
+             <div className="mt-12 flex justify-end">
+                <button 
+                    onClick={handleSave} 
+                    disabled={isSaving} 
+                    className="px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold shadow-2xl shadow-slate-200 hover:bg-slate-800 transition-all disabled:bg-slate-300"
+                >
+                    {isSaving ? 'Guardando...' : 'Guardar Opciones'}
                 </button>
             </div>
-        </div>
-    );
-};
-
-const SizesPanel: React.FC = () => {
-    const { sizes, addSize, removeSize } = useBusinessData();
-    const [activeTab, setActiveTab] = useState<SizeCategory>('footwear');
-
-    const [footwearForm, setFootwearForm] = useState({ region: '', size: '' });
-    const [topsForm, setTopsForm] = useState({ size: '', chest: '', waist: '' });
-    const [bottomsForm, setBottomsForm] = useState({ size: '', waist: '', inseam: '' });
-
-    const handleAdd = (e: React.FormEvent) => {
-        e.preventDefault();
-        switch(activeTab) {
-            case 'footwear':
-                if (footwearForm.region && footwearForm.size) {
-                    addSize('footwear', footwearForm);
-                    setFootwearForm({ region: '', size: '' });
-                }
-                break;
-            case 'tops':
-                 if (topsForm.size && topsForm.chest) {
-                    addSize('tops', topsForm);
-                    setTopsForm({ size: '', chest: '', waist: '' });
-                }
-                break;
-            case 'bottoms':
-                if (bottomsForm.size && bottomsForm.waist) {
-                    addSize('bottoms', bottomsForm);
-                    setBottomsForm({ size: '', waist: '', inseam: '' });
-                }
-                break;
-        }
-    };
-    
-    const renderForm = () => {
-        switch(activeTab) {
-            case 'footwear': return (
-                <form onSubmit={handleAdd} className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                    <input value={footwearForm.region} onChange={e => setFootwearForm({...footwearForm, region: e.target.value})} placeholder="Region (e.g., US)" className="input-field" />
-                    <input value={footwearForm.size} onChange={e => setFootwearForm({...footwearForm, size: e.target.value})} placeholder="Size (e.g., 9)" className="input-field" />
-                    <button type="submit" className="add-button">{ICONS.plus} <span className="ml-2">Add Footwear Size</span></button>
-                </form>
-            );
-            case 'tops': return (
-                 <form onSubmit={handleAdd} className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <input value={topsForm.size} onChange={e => setTopsForm({...topsForm, size: e.target.value})} placeholder="Size (e.g., M)" className="input-field" />
-                    <input value={topsForm.chest} onChange={e => setTopsForm({...topsForm, chest: e.target.value})} placeholder="Chest (e.g., 38-40&quot;)" className="input-field" />
-                    <input value={topsForm.waist} onChange={e => setTopsForm({...topsForm, waist: e.target.value})} placeholder="Waist (e.g., 32-34&quot;)" className="input-field" />
-                    <button type="submit" className="add-button">{ICONS.plus} <span className="ml-2">Add Top Size</span></button>
-                </form>
-            );
-            case 'bottoms': return (
-                <form onSubmit={handleAdd} className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <input value={bottomsForm.size} onChange={e => setBottomsForm({...bottomsForm, size: e.target.value})} placeholder="Size (e.g., 32)" className="input-field" />
-                    <input value={bottomsForm.waist} onChange={e => setBottomsForm({...bottomsForm, waist: e.target.value})} placeholder="Waist (e.g., 32&quot;)" className="input-field" />
-                    <input value={bottomsForm.inseam} onChange={e => setBottomsForm({...bottomsForm, inseam: e.target.value})} placeholder="Inseam (e.g., 32&quot;)" className="input-field" />
-                    <button type="submit" className="add-button">{ICONS.plus} <span className="ml-2">Add Bottom Size</span></button>
-                </form>
-            );
-        }
-    }
-
-    const renderTable = () => {
-        const currentData = sizes[activeTab] || [];
-        const headers = activeTab === 'footwear' ? ['Region', 'Size'] 
-                        : activeTab === 'tops' ? ['Size', 'Chest', 'Waist'] 
-                        : ['Size', 'Waist', 'Inseam'];
-        
-        return (
-             <div className="mt-8 flow-root">
-                <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                    <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                        <table className="min-w-full divide-y divide-gray-300">
-                            <thead>
-                                <tr>
-                                    {headers.map(h => <th key={h} scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">{h}</th>)}
-                                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-0"><span className="sr-only">Delete</span></th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {currentData.map((item: any) => (
-                                    <tr key={item.id}>
-                                        {headers.map(h => <td key={`${item.id}-${h}`} className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{item[h.toLowerCase()]}</td>)}
-                                        <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                            <button onClick={() => removeSize(activeTab, item.id)} className="text-red-600 hover:text-red-900">{ICONS.trash}</button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-    
-    return (
-        <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-xl font-bold text-gray-800">Size Charts</h2>
-            <p className="text-gray-500 mt-1">Manage the sizes available in your store.</p>
-            
-            <div className="border-b border-gray-200 mt-4">
-                <nav className="-mb-px flex space-x-8" aria-label="Tabs">
-                    {(['footwear', 'tops', 'bottoms'] as SizeCategory[]).map(tab => (
-                        <button key={tab} onClick={() => setActiveTab(tab)}
-                            className={`${activeTab === tab ? 'border-primary-500 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
-                                capitalize whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors`}>
-                            {tab}
-                        </button>
-                    ))}
-                </nav>
-            </div>
-            
-            <style>{`.input-field { margin-top: 0.25rem; display: block; width: 100%; padding: 0.5rem 0.75rem; background-color: white; border: 1px solid #d1d5db; border-radius: 0.375rem; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); } .add-button { display: flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; background-color: #2563eb; color: white; border-radius: 0.375rem; } .add-button:hover { background-color: #1d4ed8; }`}</style>
-
-            {renderForm()}
-            {renderTable()}
         </div>
     );
 };
@@ -226,8 +188,6 @@ const DashboardContent: React.FC = () => {
             return <ConfigPanel />;
         case 'options':
             return <OptionsPanel />;
-        case 'sizes':
-            return <SizesPanel />;
         case 'analytics':
             return <AnalyticsCharts data={analytics} />;
         default:
@@ -237,10 +197,12 @@ const DashboardContent: React.FC = () => {
 
 const DashboardPage: React.FC = () => {
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-[#F8FAFC]">
       <DashboardNav />
-      <main className="flex-1 p-8 overflow-y-auto">
-        <DashboardContent />
+      <main className="flex-1 p-10 overflow-y-auto">
+        <div className="max-w-[1400px] mx-auto">
+            <DashboardContent />
+        </div>
       </main>
     </div>
   );
