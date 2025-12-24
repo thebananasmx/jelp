@@ -1,11 +1,17 @@
 
 import React, { useState } from 'react';
-import { BusinessConfig } from '../types';
+import { BusinessConfig, HelpOptionType } from '../types';
 import { ICONS } from '../constants';
 
 interface MobilePreviewProps {
   config: BusinessConfig;
 }
+
+const RECOMMENDATIONS = [
+  { id: 1, name: 'Air Max 270', price: '$150', img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=100&q=80' },
+  { id: 2, name: 'Jordan Retro', price: '$190', img: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=100&q=80' },
+  { id: 3, name: 'Zoom Fly', price: '$130', img: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=100&q=80' },
+];
 
 const MobilePreview: React.FC<MobilePreviewProps> = ({ config }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -52,30 +58,58 @@ const MobilePreview: React.FC<MobilePreviewProps> = ({ config }) => {
           className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-40 flex flex-col ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
           style={{ backgroundColor: config.panelColor }}
         >
-          <div className="p-8 pt-16 flex flex-col h-full">
-            <div className="flex justify-between items-center mb-10">
+          <div className="p-6 pt-12 flex flex-col h-full overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-2xl font-black text-slate-900 leading-tight">¿En qué<br/>te ayudamos?</h2>
+                    <h2 className="text-2xl font-black text-slate-900 leading-tight">Centro de<br/>Asistencia</h2>
                 </div>
-                <button onClick={() => setIsOpen(false)} className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-xl font-bold">&times;</button>
+                <button onClick={() => setIsOpen(false)} className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-xl font-bold hover:bg-slate-200 transition-colors">&times;</button>
             </div>
             
-            <div className="space-y-4">
-                 {config.helpOptions.filter(o => o.enabled).map(option => (
-                     <button key={option.id} className="w-full text-left p-5 bg-white border border-slate-100 rounded-3xl flex items-center shadow-sm hover:bg-slate-50 transition-colors group">
-                        <div className="p-3 bg-slate-50 rounded-xl mr-4 group-hover:bg-slate-100 transition-colors">
-                            {option.type === 'CALL' ? 
-                                React.cloneElement(ICONS.phone as React.ReactElement, { className: 'h-5 w-5 text-slate-600' }) : 
-                                React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-slate-600' })
-                            }
+            <div className="space-y-3">
+                 {/* Main Options */}
+                 <button className="w-full text-left p-4 bg-white border border-slate-100 rounded-2xl flex items-center shadow-sm hover:border-primary-200 transition-all group">
+                    <div className="p-3 bg-emerald-50 rounded-xl mr-4 group-hover:bg-emerald-100 transition-colors">
+                        {React.cloneElement(ICONS.phone as React.ReactElement, { className: 'h-5 w-5 text-emerald-600' })}
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-800 block text-sm">Llamar para asistencia</span>
+                      <span className="text-[10px] text-slate-400 font-medium italic">Habla con un experto ahora</span>
+                    </div>
+                 </button>
+
+                 <div className="grid grid-cols-2 gap-3">
+                    <button className="text-left p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-primary-200 transition-all group">
+                        <div className="p-3 bg-blue-50 rounded-xl mb-3 w-fit group-hover:bg-blue-100 transition-colors">
+                            {React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-blue-600' })}
                         </div>
-                        <span className="font-bold text-slate-700">{option.label}</span>
-                     </button>
-                 ))}
+                        <span className="font-bold text-slate-800 block text-xs">Cambio de talla</span>
+                    </button>
+                    <button className="text-left p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-primary-200 transition-all group">
+                        <div className="p-3 bg-violet-50 rounded-xl mb-3 w-fit group-hover:bg-violet-100 transition-colors">
+                            {React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-violet-600' })}
+                        </div>
+                        <span className="font-bold text-slate-800 block text-xs">Cambio de producto</span>
+                    </button>
+                 </div>
+            </div>
+
+            {/* Product Recommendations */}
+            <div className="mt-8">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Te podría interesar</h3>
+              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                {RECOMMENDATIONS.map(item => (
+                  <div key={item.id} className="min-w-[120px] bg-white rounded-2xl p-2 border border-slate-50 shadow-sm">
+                    <img src={item.img} alt={item.name} className="w-full h-20 object-cover rounded-xl mb-2" />
+                    <p className="text-[10px] font-bold text-slate-800 truncate">{item.name}</p>
+                    <p className="text-[10px] text-primary-600 font-black">{item.price}</p>
+                  </div>
+                ))}
+              </div>
             </div>
             
-            <div className="mt-auto pb-10">
-                <p className="text-center text-xs font-bold text-slate-300 uppercase tracking-widest">Powered by JapiJelp</p>
+            <div className="mt-auto pt-6 border-t border-slate-100/50">
+                <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Powered by JapiJelp</p>
             </div>
           </div>
         </div>

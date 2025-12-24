@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { AnalyticsData } from '../types';
 
 interface AnalyticsChartsProps {
@@ -11,18 +11,18 @@ const COLORS = ['#8b5cf6', '#c4b5fd', '#4c1d95', '#a78bfa'];
 
 const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-6 grid-rows-2 gap-4 h-full">
+    <div className="grid grid-cols-1 md:grid-cols-6 gap-6 min-h-[800px]">
       {/* Principal: Size Changes */}
-      <div className="md:col-span-4 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 bento-item flex flex-col">
-        <div className="flex justify-between items-start mb-6">
+      <div className="md:col-span-4 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 bento-item flex flex-col h-[400px]">
+        <div className="flex justify-between items-start mb-6 shrink-0">
           <div>
             <h3 className="text-xl font-bold text-slate-900">Conversión de Tallas</h3>
             <p className="text-sm text-slate-500">Fluctuación de cambios solicitados por clientes</p>
           </div>
-          <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold">+12% vs mes pasado</div>
+          <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold shrink-0">+12% vs mes pasado</div>
         </div>
-        <div className="flex-1">
-          <ResponsiveContainer width="100%" height="100%" minHeight={250}>
+        <div className="flex-1 w-full min-h-0"> {/* min-h-0 es clave para flex items con charts */}
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data.sizeChanges} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontSize: 12}} dy={10} />
@@ -38,11 +38,11 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
       </div>
 
       {/* Pie Chart: Searched Sizes */}
-      <div className="md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 bento-item flex flex-col items-center">
-        <h3 className="text-xl font-bold text-slate-900 w-full mb-2">Tallas Top</h3>
-        <p className="text-sm text-slate-500 w-full mb-6 text-center">Tallas más consultadas</p>
-        <div className="flex-1 w-full">
-          <ResponsiveContainer width="100%" height="100%" minHeight={200}>
+      <div className="md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 bento-item flex flex-col items-center h-[400px]">
+        <h3 className="text-xl font-bold text-slate-900 w-full mb-2 shrink-0">Tallas Top</h3>
+        <p className="text-sm text-slate-500 w-full mb-6 text-center shrink-0">Tallas más consultadas</p>
+        <div className="flex-1 w-full min-h-0">
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data.mostSearchedSizes}
@@ -64,9 +64,9 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
       </div>
 
       {/* Product Changes - Full Width Bottom */}
-      <div className="md:col-span-6 bg-slate-900 p-8 rounded-3xl shadow-xl bento-item text-white overflow-hidden relative">
-        <div className="relative z-10 flex flex-col md:flex-row gap-8">
-          <div className="md:w-1/3">
+      <div className="md:col-span-6 bg-slate-900 p-8 rounded-3xl shadow-xl bento-item text-white overflow-hidden relative min-h-[400px]">
+        <div className="relative z-10 flex flex-col md:flex-row gap-8 h-full">
+          <div className="md:w-1/3 shrink-0">
             <h3 className="text-2xl font-bold mb-2 text-white">Top Cambios de Producto</h3>
             <p className="text-slate-400 text-sm mb-6">Identifica productos con problemas de expectativas para mejorar tu catálogo.</p>
             <div className="space-y-4">
@@ -78,7 +78,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
               ))}
             </div>
           </div>
-          <div className="md:w-2/3 h-64">
+          <div className="md:w-2/3 flex-1 min-h-[300px]">
              <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data.productChanges} layout="vertical" margin={{ left: 20 }}>
                 <XAxis type="number" hide />
@@ -93,7 +93,7 @@ const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ data }) => {
           </div>
         </div>
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600/20 blur-[100px] rounded-full -mr-20 -mt-20"></div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary-600/20 blur-[100px] rounded-full -mr-20 -mt-20 pointer-events-none"></div>
       </div>
     </div>
   );
