@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { BusinessConfig, HelpOptionType } from '../types';
 import { ICONS } from '../constants';
 
@@ -8,110 +8,85 @@ interface MobilePreviewProps {
 }
 
 const RECOMMENDATIONS = [
-  { id: 1, name: 'Air Max 270', price: '$150', img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=100&q=80' },
-  { id: 2, name: 'Jordan Retro', price: '$190', img: 'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=100&q=80' },
-  { id: 3, name: 'Zoom Fly', price: '$130', img: 'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=100&q=80' },
+  { id: 1, name: 'Cinturón Piel', price: '$45', img: 'https://images.unsplash.com/photo-1624222247344-550fb8050341?auto=format&fit=crop&w=150&q=80' },
+  { id: 2, name: 'Calcetines Sport', price: '$12', img: 'https://images.unsplash.com/photo-1586350977771-b3b0abd50c82?auto=format&fit=crop&w=150&q=80' },
+  { id: 3, name: 'Gorra Urban', price: '$25', img: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&w=150&q=80' },
 ];
 
 const MobilePreview: React.FC<MobilePreviewProps> = ({ config }) => {
-  const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="w-[340px] h-[680px] bg-slate-900 rounded-[3.5rem] shadow-2xl p-3 flex flex-col border-[8px] border-slate-800 relative ring-1 ring-slate-700">
       {/* Notch / Dynamic Island */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 w-24 h-6 bg-slate-800 rounded-full z-20"></div>
       
-      <div className="relative flex-1 bg-white rounded-[2.5rem] overflow-hidden">
-        {/* Mock Store Content */}
-        <div className="p-6 pt-12">
-          <div className="flex justify-between items-center mb-6">
-            <div className="h-2 w-12 bg-slate-200 rounded-full"></div>
-            <div className="h-6 w-6 bg-slate-100 rounded-full"></div>
+      <div className="relative flex-1 rounded-[2.5rem] overflow-hidden flex flex-col" style={{ backgroundColor: config.panelColor }}>
+        {/* Kiosk Header */}
+        <div className="p-8 pt-12 pb-6">
+          <div className="flex justify-between items-start mb-6">
+            <div className="h-10 w-10 bg-white shadow-sm rounded-xl flex items-center justify-center">
+               <span className="text-xs font-black text-slate-800">VIP</span>
+            </div>
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Vestidor</p>
+              <p className="text-sm font-black text-slate-800">Sala 04</p>
+            </div>
           </div>
-          
-          <div className="space-y-4">
-             <div className="h-8 w-3/4 bg-slate-900 rounded-xl"></div>
-             <div className="h-4 w-full bg-slate-100 rounded-lg"></div>
-             <div className="h-48 w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden flex items-center justify-center">
-                <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=400&q=80" alt="Nike shoe" className="object-contain w-full h-full opacity-80" />
-             </div>
-             <div className="grid grid-cols-2 gap-3">
-                <div className="h-10 bg-slate-900 rounded-xl"></div>
-                <div className="h-10 bg-slate-100 rounded-xl"></div>
-             </div>
+          <h2 className="text-2xl font-black text-slate-900 leading-tight">¿Necesitas algo<br/>para tu outfit?</h2>
+        </div>
+
+        {/* Assistance Options Grid */}
+        <div className="px-6 space-y-3 overflow-y-auto no-scrollbar flex-1">
+          {/* Main Action: Call Staff */}
+          <button className="w-full p-5 bg-slate-900 text-white rounded-[2rem] flex items-center shadow-xl shadow-slate-200 transition-transform active:scale-95">
+            <div className="p-3 bg-white/10 rounded-2xl mr-4">
+               {React.cloneElement(ICONS.phone as React.ReactElement, { className: 'h-6 w-6 text-white' })}
+            </div>
+            <div className="text-left">
+              <span className="font-bold block text-sm">Llamar a un asesor</span>
+              <span className="text-[10px] text-slate-400 font-medium italic">Asistencia física inmediata</span>
+            </div>
+          </button>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button className="text-left p-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm active:bg-slate-50 transition-all">
+                <div className="p-3 bg-blue-50 rounded-2xl mb-4 w-fit">
+                    {React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-blue-600' })}
+                </div>
+                <span className="font-bold text-slate-800 block text-xs">Cambio<br/>de talla</span>
+            </button>
+            <button className="text-left p-5 bg-white border border-slate-100 rounded-[2rem] shadow-sm active:bg-slate-50 transition-all">
+                <div className="p-3 bg-violet-50 rounded-2xl mb-4 w-fit">
+                    {React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-violet-600' })}
+                </div>
+                <span className="font-bold text-slate-800 block text-xs">Cambio de<br/>producto</span>
+            </button>
+          </div>
+
+          {/* Cross-selling Recommendations */}
+          <div className="pt-6">
+            <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Completa tu look</h3>
+            <div className="flex gap-3 overflow-x-auto pb-4 no-scrollbar">
+              {RECOMMENDATIONS.map(item => (
+                <div key={item.id} className="min-w-[120px] bg-white rounded-3xl p-3 border border-slate-50 shadow-sm">
+                  <img src={item.img} alt={item.name} className="w-full h-20 object-cover rounded-2xl mb-2" />
+                  <p className="text-[10px] font-bold text-slate-800 truncate">{item.name}</p>
+                  <p className="text-[10px] text-primary-600 font-black">{item.price}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Floating Help Button */}
-        {!isOpen && (
-          <button
-            onClick={() => setIsOpen(true)}
-            className="absolute bottom-6 right-6 h-16 w-16 rounded-[2rem] text-white shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-30"
-            style={{ backgroundColor: config.buttonColor, boxShadow: `0 20px 25px -5px ${config.buttonColor}44` }}
-          >
-            {React.cloneElement(ICONS.help as React.ReactElement, { className: 'h-8 w-8' })}
-          </button>
-        )}
-
-        {/* Help Panel - Glassmorphism UI */}
-        <div
-          className={`absolute inset-0 transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-40 flex flex-col ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0 pointer-events-none'}`}
-          style={{ backgroundColor: config.panelColor }}
-        >
-          <div className="p-6 pt-12 flex flex-col h-full overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h2 className="text-2xl font-black text-slate-900 leading-tight">Centro de<br/>Asistencia</h2>
-                </div>
-                <button onClick={() => setIsOpen(false)} className="h-10 w-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-xl font-bold hover:bg-slate-200 transition-colors">&times;</button>
-            </div>
-            
-            <div className="space-y-3">
-                 {/* Main Options */}
-                 <button className="w-full text-left p-4 bg-white border border-slate-100 rounded-2xl flex items-center shadow-sm hover:border-primary-200 transition-all group">
-                    <div className="p-3 bg-emerald-50 rounded-xl mr-4 group-hover:bg-emerald-100 transition-colors">
-                        {React.cloneElement(ICONS.phone as React.ReactElement, { className: 'h-5 w-5 text-emerald-600' })}
-                    </div>
-                    <div>
-                      <span className="font-bold text-slate-800 block text-sm">Llamar para asistencia</span>
-                      <span className="text-[10px] text-slate-400 font-medium italic">Habla con un experto ahora</span>
-                    </div>
-                 </button>
-
-                 <div className="grid grid-cols-2 gap-3">
-                    <button className="text-left p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-primary-200 transition-all group">
-                        <div className="p-3 bg-blue-50 rounded-xl mb-3 w-fit group-hover:bg-blue-100 transition-colors">
-                            {React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-blue-600' })}
-                        </div>
-                        <span className="font-bold text-slate-800 block text-xs">Cambio de talla</span>
-                    </button>
-                    <button className="text-left p-4 bg-white border border-slate-100 rounded-2xl shadow-sm hover:border-primary-200 transition-all group">
-                        <div className="p-3 bg-violet-50 rounded-xl mb-3 w-fit group-hover:bg-violet-100 transition-colors">
-                            {React.cloneElement(ICONS.exchange as React.ReactElement, { className: 'h-5 w-5 text-violet-600' })}
-                        </div>
-                        <span className="font-bold text-slate-800 block text-xs">Cambio de producto</span>
-                    </button>
-                 </div>
-            </div>
-
-            {/* Product Recommendations */}
-            <div className="mt-8">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Te podría interesar</h3>
-              <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-                {RECOMMENDATIONS.map(item => (
-                  <div key={item.id} className="min-w-[120px] bg-white rounded-2xl p-2 border border-slate-50 shadow-sm">
-                    <img src={item.img} alt={item.name} className="w-full h-20 object-cover rounded-xl mb-2" />
-                    <p className="text-[10px] font-bold text-slate-800 truncate">{item.name}</p>
-                    <p className="text-[10px] text-primary-600 font-black">{item.price}</p>
-                  </div>
-                ))}
+        {/* Footer info */}
+        <div className="p-6 bg-white/50 border-t border-slate-100 mt-auto">
+           <div className="flex justify-between items-center opacity-40">
+              <span className="text-[8px] font-bold uppercase tracking-tighter">Powered by JapiJelp Kiosk</span>
+              <div className="flex gap-1">
+                 <div className="w-1 h-1 rounded-full bg-slate-900"></div>
+                 <div className="w-1 h-1 rounded-full bg-slate-900"></div>
+                 <div className="w-1 h-1 rounded-full bg-slate-300"></div>
               </div>
-            </div>
-            
-            <div className="mt-auto pt-6 border-t border-slate-100/50">
-                <p className="text-center text-[10px] font-bold text-slate-300 uppercase tracking-widest">Powered by JapiJelp</p>
-            </div>
-          </div>
+           </div>
         </div>
       </div>
     </div>
